@@ -470,7 +470,7 @@ sub batch_alter_table {
   do {
     local $table->{name} = $temp_table_name;
     # We only want the table - don't care about indexes on tmp table
-    my ($table_sql) = create_table($table, {no_comments => 1, temporary_table => 1});
+    my ($table_sql) = create_table($table, {no_comments => 1});
     push @sql,$table_sql;
 
     %temp_table_fields = map { $_ => 1} $table->get_fields;
