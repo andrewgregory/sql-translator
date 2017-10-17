@@ -18,6 +18,89 @@ sub produce {
   )->schema($translator->schema)
 }
 
+sub add_field {
+  my ($field) = @_;
+
+  my $generator = SQL::Translator::Generator::DDL::SQLServer->new();
+
+  return sprintf("ALTER TABLE %s ADD %s",
+      $generator->quote($field->table->name), $generator->field($field))
+}
+
+sub rename_table {
+    my ( $old_table, $new_table, $options ) = @_;
+
+    my $generator = SQL::Translator::Generator::DDL::SQLServer->new();
+
+    return
+      sprintf( "EXEC sp_rename '%s', '%s', OBJECT", $old_table, $new_table );
+}
+
+sub drop_field {
+    my ( $field, $options ) = @_;
+
+    my $generator = SQL::Translator::Generator::DDL::SQLServer->new();
+
+    return sprintf(
+        "ALTER TABLE %s DROP COLUMN %s",
+        $generator->quote( $field->table->name ),
+        $generator->quote( $field->name ) );
+}
+
+sub alter_drop_constraint {
+    my ( $c, $options ) = @_;
+
+    die "constraint has no name" unless $c->name;
+
+    my $generator = SQL::Translator::Generator::DDL::SQLServer->new();
+
+    return sprintf( 'ALTER TABLE %s DROP CONSTRAINT %s',
+        map { $generator->quote($_) } $c->table->name, $c->name, );
+}
+
+sub alter_field {
+    my ( $from_field, $to_field, $options ) = @_;
+
+    die "Can't alter field in another table"
+      if ( $from_field->table->name ne $to_field->table->name );
+
+    my $generator = SQL::Translator::Generator::DDL::SQLServer->new();
+
+    return sprintf(
+        "ALTER TABLE %s ALTER COLUMN %s",
+        $generator->quote( $to_field->table->name ),
+        $generator->field($to_field) );
+}
+
+sub alter_create_index {
+    my ($index, $options) = @_;
+    my $generator = SQL::Translator::Generator::DDL::SQLServer->new();
+    die "UNIQUE indexes not currently supported" if $index->type ne 'NORMAL';
+    return $generator->index($index);
+}
+
+sub alter_create_constraint {
+    my ( $constraint, $options ) = @_;
+    my $generator = SQL::Translator::Generator::DDL::SQLServer->new();
+    if ( $constraint->type eq 'FOREIGN KEY' ) {
+        return $generator->foreign_key_constraint($constraint);
+    }
+    else {
+        die $constraint->type . 'constraints not currently supported';
+    }
+}
+
+sub rename_field {
+    my ( $from_field, $to_field, $options ) = @_;
+    my $generator = SQL::Translator::Generator::DDL::SQLServer->new();
+    return
+        'EXEC sp_rename ' . "'"
+      . $from_field->table->name . '.'
+      . $from_field->name . "'" . ', ' . "'"
+      . $to_field->name . "'"
+      . ", 'COLUMN'";
+}
+
 1;
 
 =head1 NAME
