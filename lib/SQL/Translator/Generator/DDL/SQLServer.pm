@@ -115,11 +115,11 @@ sub foreign_key_constraint {
    $self->quote($constraint->reference_table) .
    ' (' . join( ', ', map $self->quote($_), $constraint->reference_fields ) . ')'
    . (
-     $on_delete && $on_delete ne "NO ACTION"
+     $on_delete
        ? ' ON DELETE ' . $on_delete
        : ''
    ) . (
-     $on_update && $on_update ne "NO ACTION"
+     $on_update
        ? ' ON UPDATE ' . $on_update
        : ''
    ) . ';';
