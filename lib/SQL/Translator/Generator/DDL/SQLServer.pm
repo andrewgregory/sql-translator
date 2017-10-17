@@ -103,8 +103,8 @@ sub foreign_key_constraint {
 
   # The default implicit constraint action in MSSQL is RESTRICT
   # but you can not specify it explicitly. Go figure :)
-  for (map uc $_ || '', $on_delete, $on_update) {
-    undef $_ if $_ eq 'RESTRICT'
+  for ($on_delete, $on_update) {
+    $_ = 'NO ACTION' if $_ eq 'RESTRICT';
   }
 
   'ALTER TABLE ' . $self->quote($constraint->table->name) .
